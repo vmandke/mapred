@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="2">
+    <title>Driver and Task Status</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section {
+            margin: 20px 0;
+        }
+        .section h2 {
+            color: #555;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 5px;
+        }
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(20, 1fr);
+            gap: 2px;
+            margin-top: 2px;
+        }
+        .task-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            position: relative;
+            cursor: pointer;
+        }
+        .task-pending {
+            background-color: #aec6cf; /* pastel blue */
+        }
+        .task-completed {
+            background-color: #77dd77; /* pastel green */
+        }
+        .task-failed {
+            background-color: #ff6961; /* pastel red */
+        }
+        .task-in_progress {
+            background-color: #ffb347; /* pastel orange */
+        }
+        .tooltip {
+            display: none;
+            position: absolute;
+            top: 45px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 10px;
+            white-space: nowrap;
+            z-index: 10;
+        }
+        .task-box:hover .tooltip {
+            display: block;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: white;
+        }
+        table th, table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        table th {
+            background-color: #f2f2f2;
+        }
+        .status-idle {
+            color: blue;
+        }
+        .status-inactive {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+<h1>Driver and Task Status</h1>
+<div class="container">
+    <!-- Driver Status -->
+    <div class="section">
+        <h2>Driver Status</h2>
+        <p>Status: {{ driver_status }}</p>
+    </div>
+
+    <!-- Map Tasks -->
+    <div class="section">
+        <h2>Map Tasks</h2>
+        <div class="task-grid">
+            {% for task in driver_work if task.task_type == 'MAP' %}
+            <div class="task-box task-{{ task.status | lower }}">
+                {{ task.task_id }}
+                <div class="tooltip">
+                    Task ID: {{ task.task_id }}<br>
+                    Status: {{ task.status }}<br>
+                    Type: {{ task.task_type }}<br>
+                    Child Dependencies: {{ task.child_dependencies | join(', ') }}<br>
+                    Parent Dependencies: {{ task.parent_dependencies | join(', ') }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Reduce Tasks -->
+    <div class="section">
+        <h2>Reduce Tasks</h2>
+        <div class="task-grid">
+            {% for task in driver_work if task.task_type == 'REDUCE' %}
+            <div class="task-box task-{{ task.status | lower }}">
+                {{ task.task_id }}
+                <div class="tooltip">
+                    Task ID: {{ task.task_id }}<br>
+                    Status: {{ task.status }}<br>
+                    Type: {{ task.task_type }}<br>
+                    Child Dependencies: {{ task.child_dependencies | join(', ') }}<br>
+                    Parent Dependencies: {{ task.parent_dependencies | join(', ') }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Registered Workers -->
+    <div class="section">
+        <h2>Registered Workers</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>Worker URI</th>
+                <th>Status</th>
+                <th>Task ID</th>
+                <th>Task Status</th>
+                <th>Last Heartbeat (s)</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for worker_id, worker in registered_workers.items() %}
+            <tr>
+                <td>{{ worker.worker_uri }}</td>
+                <td class="status-{{ worker.status | lower }}">{{ worker.status }}</td>
+                <td>{{ worker.task_id }}</td>
+                <td>{{ worker.task_status }}</td>
+                <td>{{ '%.2f' | format(worker.last_heartbeat) }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
